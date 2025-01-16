@@ -30,12 +30,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: '#FFFFFF',
     fontSize: 24,
-    marginBottom: 16
+    marginBottom: 12
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 8,
     gap: 48
   },
   headerColumn: {
@@ -65,16 +65,15 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#93C5FD',
     opacity: 0.3,
-    marginVertical: 12,
-    marginHorizontal: 4
+    marginVertical: 8,
+    marginHorizontal: 0
   },
   headerLogo: {
     width: 80,
     height: 80,
     backgroundColor: '#FFFFFF',
     borderRadius: 4,
-    marginLeft: 20,
-    marginBottom: 12
+    marginLeft: 20
   },
   content: {
     padding: 20
@@ -252,23 +251,20 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
                   {new Date().toLocaleDateString('pt-BR')}
                 </Text>
               </View>
+              <View style={styles.headerColumn}>
+                <Text style={styles.headerDateLabel}>Horário</Text>
+                <Text style={styles.headerDateValue}>
+                  {new Date().toLocaleTimeString('pt-BR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                  })}
+                </Text>
+              </View>
             </View>
           </View>
-          <View>
-            <View style={styles.headerLogo} />
-            <View style={styles.headerDivider} />
-            <View style={styles.headerColumn}>
-              <Text style={styles.headerDateLabel}>Horário</Text>
-              <Text style={styles.headerDateValue}>
-                {new Date().toLocaleTimeString('pt-BR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                  hour12: false
-                })}
-              </Text>
-            </View>
-          </View>
+          <View style={styles.headerLogo} />
         </View>
 
         <View style={styles.content}>
@@ -583,9 +579,9 @@ function ProLaboreTemplate() {
               <div className="bg-blue-600 p-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h1 className="text-xl font-bold text-white mb-4">Relatório de Pró-labore</h1>
+                    <h1 className="text-xl font-bold text-white mb-3">Relatório de Pró-labore</h1>
                     
-                    <div className="flex gap-12 mb-4">
+                    <div className="flex gap-12 mb-2">
                       <div>
                         <span className="text-blue-200 block mb-1 text-xs">Empresa</span>
                         <span className="font-medium text-white text-base">{companyName || 'Nome da Empresa'}</span>
@@ -596,29 +592,28 @@ function ProLaboreTemplate() {
                       </div>
                     </div>
 
-                    <div className="border-t border-blue-400 border-opacity-30 my-4 mx-1" />
+                    <div className="border-t border-blue-400 border-opacity-30 my-2" />
 
-                    <div>
-                      <span className="text-blue-200 block mb-1 text-[10px]">Data</span>
-                      <span className="font-medium text-white text-sm">{new Date().toLocaleDateString('pt-BR')}</span>
+                    <div className="flex gap-12">
+                      <div>
+                        <span className="text-blue-200 block mb-1 text-[10px]">Data</span>
+                        <span className="font-medium text-white text-sm">{new Date().toLocaleDateString('pt-BR')}</span>
+                      </div>
+                      <div>
+                        <span className="text-blue-200 block mb-1 text-[10px]">Horário</span>
+                        <span className="font-medium text-white text-sm">
+                          {new Date().toLocaleTimeString('pt-BR', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit',
+                            hour12: false
+                          })}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center mb-3">
-                      <Building2 className="w-12 h-12 text-blue-600" />
-                    </div>
-                    <div className="border-t border-blue-400 border-opacity-30 mb-3" />
-                    <div>
-                      <span className="text-blue-200 block mb-1 text-[10px]">Horário</span>
-                      <span className="font-medium text-white text-sm">
-                        {new Date().toLocaleTimeString('pt-BR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                          hour12: false
-                        })}
-                      </span>
-                    </div>
+                  <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center">
+                    <Building2 className="w-12 h-12 text-blue-600" />
                   </div>
                 </div>
               </div>
@@ -692,4 +687,6 @@ function ProLaboreTemplate() {
       </div>
     </div>
   );
-} export default ProLaboreTemplate;
+}
+
+export default ProLaboreTemplate;
