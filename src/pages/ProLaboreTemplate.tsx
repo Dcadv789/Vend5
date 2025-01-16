@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, FileDown, Building2 } from 'lucide-react';
+import { Save, FileDown, Building2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 import { Notification } from '../components/Notification';
 
@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1E40AF',
-    padding: 20,
+    padding: 22,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 15,
-    gap: 5,
+    marginBottom: 12,
+    gap: 20,
     position: 'relative',
     top: 15
   },
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 4
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#1E293B',
     marginBottom: 8,
     borderBottomWidth: 1,
@@ -115,11 +115,11 @@ const styles = StyleSheet.create({
     borderRadius: 2
   },
   label: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#64748B'
   },
   value: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#1E293B',
     fontWeight: 'bold'
   },
@@ -137,8 +137,18 @@ const styles = StyleSheet.create({
   analysisRed: {
     backgroundColor: '#FEE2E2',
   },
+  analysisHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  analysisIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
+  },
   analysisTitle: {
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 8,
     fontWeight: 'bold'
   },
@@ -152,8 +162,8 @@ const styles = StyleSheet.create({
     color: '#991B1B',
   },
   analysisText: {
-    fontSize: 12,
-    marginBottom: 8,
+    fontSize: 14,
+    marginBottom: 16,
     lineHeight: 1.4
   },
   analysisTextGreen: {
@@ -165,20 +175,24 @@ const styles = StyleSheet.create({
   analysisTextRed: {
     color: '#991B1B',
   },
-  recommendedValue: {
-    fontSize: 14,
+  valuesGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  valueBox: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 8,
+    borderRadius: 4,
+  },
+  valueLabel: {
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  valueAmount: {
+    fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 8,
-    marginBottom: 4
-  },
-  recommendedValueGreen: {
-    color: '#166534',
-  },
-  recommendedValueYellow: {
-    color: '#854D0E',
-  },
-  recommendedValueRed: {
-    color: '#991B1B',
   },
   footer: {
     position: 'absolute',
@@ -205,20 +219,23 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
     if (current <= recommended) {
       return {
         text: 'O valor atual do pró-labore está adequado à realidade financeira da empresa',
-        color: 'green'
+        color: 'green',
+        icon: 'trending-up'
       };
     }
     
     if (current <= maximum) {
       return {
         text: `O valor atual do Pró-labore está adequado à realidade financeira da empresa, mas próximo do limite, o que é arriscado. Garanta uma reserva financeira mínima de ${(lastCalculation?.monthlyFixedCosts * 12).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-        color: 'yellow'
+        color: 'yellow',
+        icon: 'static'
       };
     }
     
     return {
       text: 'Considere ajustar o valor do pró-labore para garantir a saúde financeira da empresa',
-      color: 'red'
+      color: 'red',
+      icon: 'trending-down'
     };
   };
 
@@ -233,7 +250,8 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
       analysis: [styles.analysis, color === 'green' ? styles.analysisGreen : color === 'yellow' ? styles.analysisYellow : styles.analysisRed],
       title: [styles.analysisTitle, color === 'green' ? styles.analysisTitleGreen : color === 'yellow' ? styles.analysisTitleYellow : styles.analysisTitleRed],
       text: [styles.analysisText, color === 'green' ? styles.analysisTextGreen : color === 'yellow' ? styles.analysisTextYellow : styles.analysisTextRed],
-      value: [styles.recommendedValue, color === 'green' ? styles.recommendedValueGreen : color === 'yellow' ? styles.recommendedValueYellow : styles.recommendedValueRed]
+      valueLabel: [styles.valueLabel, color === 'green' ? styles.analysisTitleGreen : color === 'yellow' ? styles.analysisTitleYellow : styles.analysisTitleRed],
+      valueAmount: [styles.valueAmount, color === 'green' ? styles.analysisTitleGreen : color === 'yellow' ? styles.analysisTitleYellow : styles.analysisTitleRed]
     };
   };
 
@@ -283,26 +301,49 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
 
         <View style={styles.content}>
           <View style={analysisStyle.analysis}>
-            <Text style={analysisStyle.title}>Análise e Recomendações</Text>
+            <View style={styles.analysisHeader}>
+              <Text style={analysisStyle.title}>Análise e Recomendações</Text>
+            </View>
             <Text style={analysisStyle.text}>{diagnosis.text}</Text>
-            <Text style={analysisStyle.value}>
-              Pró-labore Recomendado: {lastCalculation ? 
-                (lastCalculation.maximumRecommended * 0.7).toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }) : 
-                'R$ 0,00'
-              }
-            </Text>
-            <Text style={analysisStyle.value}>
-              Pró-labore Máximo: {lastCalculation ? 
-                lastCalculation.maximumRecommended.toLocaleString('pt-BR', {
-                  style: 'currency',
-                  currency: 'BRL'
-                }) : 
-                'R$ 0,00'
-              }
-            </Text>
+
+            <View style={styles.valuesGrid}>
+              <View style={styles.valueBox}>
+                <Text style={analysisStyle.valueLabel}>Pró-labore Atual</Text>
+                <Text style={analysisStyle.valueAmount}>
+                  {lastCalculation ? 
+                    lastCalculation.currentProLabore.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }) : 
+                    'R$ 0,00'
+                  }
+                </Text>
+              </View>
+              <View style={styles.valueBox}>
+                <Text style={analysisStyle.valueLabel}>Pró-labore Recomendado</Text>
+                <Text style={analysisStyle.valueAmount}>
+                  {lastCalculation ? 
+                    (lastCalculation.maximumRecommended * 0.7).toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }) : 
+                    'R$ 0,00'
+                  }
+                </Text>
+              </View>
+              <View style={styles.valueBox}>
+                <Text style={analysisStyle.valueLabel}>Pró-labore Máximo</Text>
+                <Text style={analysisStyle.valueAmount}>
+                  {lastCalculation ? 
+                    lastCalculation.maximumRecommended.toLocaleString('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL'
+                    }) : 
+                    'R$ 0,00'
+                  }
+                </Text>
+              </View>
+            </View>
           </View>
 
           {Object.entries(groupedFields).map(([group, groupFields]) => (
