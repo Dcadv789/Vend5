@@ -689,9 +689,7 @@ function ProLaboreTemplate() {
             </div>
           </div>
         </div>
-      </div </div>
+      </div>
     </div>
   );
-}
-
-export default ProLaboreTemplate;
+} export default ProLaboreTemplate;
