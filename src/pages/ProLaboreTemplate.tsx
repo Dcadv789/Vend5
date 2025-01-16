@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Plus, Trash2, ToggleLeft, ToggleRight, FileDown, Building2 } from 'lucide-react';
+import { Save, FileDown, Building2 } from 'lucide-react';
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
 import { Notification } from '../components/Notification';
 
@@ -292,35 +292,39 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
           </View>
 
           {Object.entries(groupedFields).map(([group, groupFields]) => (
-            <View key={group} style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {group === 'faturamento' ? 'Faturamento' :
-                 group === 'custos_fixos' ? 'Custos Fixos' :
-                 'Custos Variáveis'}
-              </Text>
-              {groupFields.filter(f => f.enabled).map((field) => (
-                <View key={field.id} style={styles.row}>
-                  <Text style={styles.label}>{field.label}:</Text>
-                  <Text style={styles.value}>
-                    {lastCalculation?.[group === 'faturamento' ? 'revenue' : 
-                                    group === 'custos_fixos' ? 'fixedCosts' : 
-                                    'variableCosts']?.[field.id] ?
-                      (group === 'custos_variaveis' ? 
-                        `${lastCalculation.variableCosts[field.id].toFixed(2)}%` :
-                        lastCalculation[group === 'faturamento' ? 'revenue' : 'fixedCosts'][field.id].toLocaleString('pt-BR', {
-                          style: 'currency',
-                          currency: 'BRL'
-                        })
-                      ) :
-                      field.type === 'currency' ? 'R$ 0,00' :
-                      field.type === 'number' ? '0,00%' :
-                      field.type === 'date' ? new Date().toLocaleDateString('pt-BR') :
-                      'Exemplo'
-                    }
-                  </Text>
+            groupFields[0].enabled && (
+              <View key={group} style={styles.section}>
+                <Text style={styles.sectionTitle}>
+                  {group === 'faturamento' ? 'Faturamento' :
+                   group === 'custos_fixos' ? 'Custos Fixos' :
+                   'Custos Variáveis'}
+                </Text>
+                <View style={styles.row}>
+                  {groupFields.map((field) => (
+                    <View key={field.id}>
+                      <Text style={styles.label}>{field.label}:</Text>
+                      <Text style={styles.value}>
+                        {lastCalculation?.[group === 'faturamento' ? 'revenue' : 
+                                        group === 'custos_fixos' ? 'fixedCosts' : 
+                                        'variableCosts']?.[field.id] ?
+                          (group === 'custos_variaveis' ? 
+                            `${lastCalculation.variableCosts[field.id].toFixed(2)}%` :
+                            lastCalculation[group === 'faturamento' ? 'revenue' : 'fixedCosts'][field.id].toLocaleString('pt-BR', {
+                              style: 'currency',
+                              currency: 'BRL'
+                            })
+                          ) :
+                          field.type === 'currency' ? 'R$ 0,00' :
+                          field.type === 'number' ? '0,00%' :
+                          field.type === 'date' ? new Date().toLocaleDateString('pt-BR') :
+                          'Exemplo'
+                        }
+                      </Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
-            </View>
+              </View>
+            )
           ))}
         </View>
 
@@ -361,27 +365,14 @@ function ProLaboreTemplate() {
     if (savedCalculation) setLastCalculation(JSON.parse(savedCalculation));
   }, []);
 
-  const handleToggleField = (id: string) => {
+  const handleToggleGroup = (group: string) => {
     setFields(fields.map(field => 
-      field.id === id ? { ...field, enabled: !field.enabled } : field
+      field.group === group ? { ...field, enabled: !field.enabled } : field
     ));
   };
 
   const handleSaveTemplate = () => {
     setShowNotification(true);
-  };
-
-  const getFieldIcon = (type: string) => {
-    switch (type) {
-      case 'currency':
-        return '💰';
-      case 'number':
-        return '📊';
-      case 'date':
-        return '📅';
-      default:
-        return '📝';
-    }
   };
 
   const groupedFields = fields.reduce((acc, field) => {
@@ -405,54 +396,6 @@ function ProLaboreTemplate() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    });
-  };
-
-  const getTotalRevenue = () => {
-    if (!lastCalculation?.revenue) return 0;
-    return Object.values(lastCalculation.revenue).reduce((a: number, b: number) => a + b, 0);
-  };
-
-  const getDiagnosisInfo = (current: number, recommended: number, maximum: number) => {
-    if (current <= recommended) {
-      return {
-        text: 'O valor atual do pró-labore está adequado à realidade financeira da empresa',
-        color: 'green',
-        bgColor: 'bg-green-50',
-        textColor: 'text-green-800',
-        borderColor: 'border-green-200'
-      };
-    }
-    
-    if (current <= maximum) {
-      return {
-        text: `O valor atual do Pró-labore está adequado à realidade financeira da empresa, mas próximo do limite, o que é arriscado. Garanta uma reserva financeira mínima de ${formatCurrency(lastCalculation?.monthlyFixedCosts * 12)}`,
-        color: 'yellow',
-        bgColor: 'bg-yellow-50',
-        textColor: 'text-yellow-800',
-        borderColor: 'border-yellow-200'
-      };
-    }
-    
-    return {
-      text: 'Considere ajustar o valor do pró-labore para garantir a saúde financeira da empresa',
-      color: 'red',
-      bgColor: 'bg-red-50',
-      textColor: 'text-red-800',
-      borderColor: 'border-red-200'
-    };
-  };
-
-  const diagnosis = lastCalculation ? getDiagnosisInfo(
-    lastCalculation.currentProLabore,
-    lastCalculation.maximumRecommended * 0.7,
-    lastCalculation.maximumRecommended
-  ) : null;
-
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       {showNotification && (
@@ -467,220 +410,90 @@ function ProLaboreTemplate() {
           Template de Pró-labore
         </h1>
         <p className="text-blue-100">
-          Configure os campos que serão exibidos no relatório de pró-labore
+          Configure os grupos de informações que serão exibidos no relatório de pró-labore
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
-        <div className="space-y-8">
-          {lastCalculation && (
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-              <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
-                <h3 className="text-lg font-semibold text-white">Último Pró-Labore Calculado</h3>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Empresa:</span>
-                    <span className="font-medium text-gray-900">{companyName || 'Não informado'}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">CNPJ:</span>
-                    <span className="font-medium text-gray-900">{cnpj || 'Não informado'}</span>
-                  </div>
+      <div className="space-y-8">
+        {lastCalculation && (
+          <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+              <h3 className="text-lg font-semibold text-white">Último Pró-Labore Calculado</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Empresa:</span>
+                  <span className="font-medium text-gray-900">{companyName || 'Não informado'}</span>
                 </div>
-                <div className="border-t border-gray-200 pt-4 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Faturamento Total:</span>
-                    <span className="font-medium text-gray-900">{formatCurrency(getTotalRevenue())}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Pró-labore Recomendado:</span>
-                    <span className="font-medium text-green-600">
-                      {formatCurrency(lastCalculation.maximumRecommended * 0.7)}
-                    </span>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">CNPJ:</span>
+                  <span className="font-medium text-gray-900">{cnpj || 'Não informado'}</span>
                 </div>
               </div>
             </div>
-          )}
-
-          {Object.entries(groupedFields).map(([group, groupFields]) => (
-            <div key={group} className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-              <div className="p-6 space-y-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  {getGroupTitle(group)}
-                </h3>
-                <div className="space-y-3">
-                  {groupFields.map((field) => (
-                    <div key={field.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 shadow-sm">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xl">{getFieldIcon(field.type)}</span>
-                        <div>
-                          <p className="font-medium text-gray-900">{field.label}</p>
-                          <p className="text-sm text-gray-500">
-                            {field.type === 'currency' ? 'Valor monetário' : 
-                             field.type === 'number' ? 'Valor numérico' : 
-                             field.type === 'date' ? 'Data' : 'Texto'}
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleToggleField(field.id)}
-                        className={`p-2 rounded-lg transition-colors ${
-                          field.enabled ? 'text-green-600 hover:text-green-700' : 'text-gray-400 hover:text-gray-500'
-                        }`}
-                      >
-                        {field.enabled ? <ToggleRight size={24} /> : <ToggleLeft size={24} />}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-
-          <div className="flex gap-4">
-            <button
-              onClick={handleSaveTemplate}
-              className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <Save size={20} className="mr-2" />
-              Salvar Template
-            </button>
-
-            <PDFDownloadLink
-              document={
-                <ProLaborePDF 
-                  fields={fields} 
-                  groupedFields={groupedFields} 
-                  companyName={companyName} 
-                  cnpj={cnpj}
-                  lastCalculation={lastCalculation}
-                />
-              }
-              fileName="relatorio-pro-labore.pdf"
-              className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              {({ loading }) => (
-                <>
-                  <FileDown size={20} className="mr-2" />
-                  {loading ? 'Gerando PDF...' : 'Exportar PDF'}
-                </>
-              )}
-            </PDFDownloadLink>
           </div>
-        </div>
+        )}
 
         <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-          <div className="p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Pré-visualização</h3>
-            <div className="relative bg-white" style={{ height: '842px', width: '595px', transform: 'scale(0.7)', transformOrigin: 'top left' }}>
-              <div className="bg-blue-600 p-4">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h1 className="text-xl font-bold text-white mb-3">Relatório de Pró-labore</h1>
-                    
-                    <div className="flex gap-12 mb-2">
-                      <div>
-                        <span className="text-blue-200 block mb-1 text-xs">Empresa</span>
-                        <span className="font-medium text-white text-base">{companyName || 'Nome da Empresa'}</span>
-                      </div>
-                      <div>
-                        <span className="text-blue-200 block mb-1 text-xs">CNPJ</span>
-                        <span className="font-medium text-white text-base">{cnpj || '00.000.000/0001-00'}</span>
-                      </div>
-                    </div>
-
-                    <div className="border-t border-blue-400 border-opacity-30 my-2" />
-
-                    <div className="flex gap-12">
-                      <div>
-                        <span className="text-blue-200 block mb-1 text-[10px]">Data</span>
-                        <span className="font-medium text-white text-sm">{new Date().toLocaleDateString('pt-BR')}</span>
-                      </div>
-                      <div>
-                        <span className="text-blue-200 block mb-1 text-[10px]">Horário</span>
-                        <span className="font-medium text-white text-sm">
-                          {new Date().toLocaleTimeString('pt-BR', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                            hour12: false
-                          })}
-                        </span>
-                      </div>
+          <div className="p-6 space-y-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Grupos de Informações
+            </h3>
+            <div className="space-y-4">
+              {Object.entries(groupedFields).map(([group, groupFields]) => (
+                <div key={group} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-xl">📊</span>
+                    <div>
+                      <p className="font-medium text-gray-900">{getGroupTitle(group)}</p>
+                      <p className="text-sm text-gray-500">
+                        {groupFields.length} campos disponíveis
+                      </p>
                     </div>
                   </div>
-                  <div className="w-20 h-20 bg-white rounded-lg flex items-center justify-center">
-                    <Building2 className="w-12 h-12 text-blue-600" />
-                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={groupFields[0].enabled}
+                      onChange={() => handleToggleGroup(group)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="p-5 space-y-4">
-                {diagnosis && (
-                  <div className={`p-4 rounded-lg ${diagnosis.bgColor} border ${diagnosis.borderColor}`}>
-                    <h2 className={`text-lg font-bold ${diagnosis.textColor} mb-2`}>Análise e Recomendações</h2>
-                    <p className={`text-sm ${diagnosis.textColor} mb-4`}>{diagnosis.text}</p>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className={diagnosis.textColor}>Pró-labore Recomendado:</span>
-                        <span className={`font-bold ${diagnosis.textColor}`}>
-                          {lastCalculation ? 
-                            formatCurrency(lastCalculation.maximumRecommended * 0.7) : 
-                            'R$ 0,00'
-                          }
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className={diagnosis.textColor}>Pró-labore Máximo:</span>
-                        <span className={`font-bold ${diagnosis.textColor}`}>
-                          {lastCalculation ? 
-                            formatCurrency(lastCalculation.maximumRecommended) : 
-                            'R$ 0,00'
-                          }
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+            <div className="flex gap-4 pt-6">
+              <button
+                onClick={handleSaveTemplate}
+                className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <Save size={20} className="mr-2" />
+                Salvar Template
+              </button>
+
+              <PDFDownloadLink
+                document={
+                  <ProLaborePDF 
+                    fields={fields} 
+                    groupedFields={groupedFields} 
+                    companyName={companyName} 
+                    cnpj={cnpj}
+                    lastCalculation={lastCalculation}
+                  />
+                }
+                fileName="relatorio-pro-labore.pdf"
+                className="flex-1 inline-flex items-center justify-center px-4 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                {({ loading }) => (
+                  <>
+                    <FileDown size={20} className="mr-2" />
+                    {loading ? 'Gerando PDF...' : 'Exportar PDF'}
+                  </>
                 )}
-
-                <div className="space-y-4">
-                  {Object.entries(groupedFields).map(([group, groupFields]) => (
-                    <div key={group} className="bg-gray-50 p-4 rounded-lg">
-                      <h3 className="text-sm font-semibold text-blue-800 border-b border-blue-100 pb-2 mb-3">
-                        {getGroupTitle(group)}
-                      </h3>
-                      <div className="space-y-2">
-                        {groupFields.filter(f => f.enabled).map((field) => (
-                          <div key={field.id} className="flex justify-between items-center text-sm">
-                            <span className="text-gray-600">{field.label}:</span>
-                            <span className="font-medium">
-                              {lastCalculation?.[group === 'faturamento' ? 'revenue' : 
-                                              group === 'custos_fixos' ? 'fixedCosts' : 
-                                              'variableCosts']?.[field.id] ?
-                                (group === 'custos_variaveis' ? 
-                                  `${lastCalculation.variableCosts[field.id].toFixed(2)}%` :
-                                  formatCurrency(lastCalculation[group === 'faturamento' ? 'revenue' : 'fixedCosts'][field.id])
-                                ) :
-                                field.type === 'currency' ? 'R$ 0,00' :
-                                field.type === 'number' ? '0,00%' :
-                                field.type === 'date' ? new Date().toLocaleDateString('pt-BR') :
-                                'Exemplo'
-                              }
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="absolute bottom-5 left-0 right-0 text-center text-gray-500 text-xs border-t border-gray-200 pt-4 mx-5">
-                  DC Advisors® - Todos os direitos reservados
-                </div>
-              </div>
+              </PDFDownloadLink>
             </div>
           </div>
         </div>
