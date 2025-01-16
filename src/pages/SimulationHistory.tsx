@@ -43,7 +43,7 @@ function EarlyPaymentModal({ onClose, onConfirm, simulation, initialPayment = nu
 }) {
   const [date, setDate] = useState(initialPayment?.date || '');
   const [amount, setAmount] = useState(initialPayment ? String(initialPayment.amount * 100) : '');
-  const [reduceInstallment, setReduceInstallment] = useState(false);
+  const [reduceInstallment, setReduceInstallment] = useState(initialPayment?.reduceInstallment || false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +53,7 @@ function EarlyPaymentModal({ onClose, onConfirm, simulation, initialPayment = nu
       id: initialPayment?.id || String(Date.now()),
       date,
       amount: Number(amount) / 100,
-      reduceInstallment: false
+      reduceInstallment
     });
     onClose();
   };
@@ -109,6 +109,20 @@ function EarlyPaymentModal({ onClose, onConfirm, simulation, initialPayment = nu
               Saldo devedor total: {formatCurrency(String(financedAmount * 100))}
             </p>
           </div>
+          {simulation.type === 'PRICE' && (
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="reduceInstallment"
+                checked={reduceInstallment}
+                onChange={(e) => setReduceInstallment(e.target.checked)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="reduceInstallment" className="ml-2 block text-sm text-gray-900">
+                Reduzir valor das parcelas
+              </label>
+            </div>
+          )}
           <div className="flex justify-end space-x-2 pt-4">
             <button
               type="button"
@@ -149,27 +163,59 @@ function SimulationModal({ simulation: initialSimulation, onClose, onUpdate }: {
   };
 
   const recalculateInstallments = (payments: EarlyPayment[]) => {
-    if (simulation.type !== 'SAC') {
-      return simulation.installments;
+    if (payments.length === 0) {
+      return initialSimulation.installments;
     }
 
     const monthlyRate = simulation.monthlyRate / 100;
-    const originalAmortization = (simulation.financingAmount - simulation.downPayment) / simulation.months;
     let newInstallments = [...initialSimulation.installments];
     
     payments.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-    let currentBalance = simulation.financingAmount - simulation.downPayment;
-    let remainingMonths = simulation.months;
-    let currentDate = new Date(newInstallments[0].date.split('/').reverse().join('-'));
+    if (simulation.type === 'SAC') {
+      const originalAmortization = (simulation.financingAmount - simulation.downPayment) / simulation.months;
+      let currentBalance = simulation.financingAmount - simulation.downPayment;
+      let remainingMonths = simulation.months;
+      let currentDate = new Date(newInstallments[0].date.split('/').reverse().join('-'));
 
-    newInstallments = [];
-    let installmentNumber = 1;
+      newInstallments = [];
+      let installmentNumber = 1;
 
-    for (const payment of payments) {
-      const paymentDate = new Date(payment.date);
-      
-      while (currentDate < paymentDate && currentBalance > 0) {
+      for (const payment of payments) {
+        const paymentDate = new Date(payment.date);
+        
+        while (currentDate < paymentDate && currentBalance > 0) {
+          const interest = currentBalance * monthlyRate;
+          const payment = originalAmortization + interest;
+          currentBalance -= originalAmortization;
+          remainingMonths--;
+
+          newInstallments.push({
+            number: installmentNumber++,
+            date: currentDate.toLocaleDateString('pt-BR'),
+            payment,
+            amortization: originalAmortization,
+            interest,
+            balance: Math.max(0, currentBalance)
+          });
+
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+
+        if (currentBalance > 0) {
+          currentBalance -= payment.amount;
+          newInstallments.push({
+            number: -1,
+            date: paymentDate.toLocaleDateString('pt-BR'),
+            payment: payment.amount,
+            amortization: payment.amount,
+            interest: 0,
+            balance: Math.max(0, currentBalance)
+          });
+        }
+      }
+
+      while (currentBalance > 0) {
         const interest = currentBalance * monthlyRate;
         const payment = originalAmortization + interest;
         currentBalance -= originalAmortization;
@@ -186,36 +232,121 @@ function SimulationModal({ simulation: initialSimulation, onClose, onUpdate }: {
 
         currentDate.setMonth(currentDate.getMonth() + 1);
       }
+    } else {
+      let currentBalance = simulation.financingAmount - simulation.downPayment;
+      let currentDate = new Date(newInstallments[0].date.split('/').reverse().join('-'));
+      let remainingMonths = simulation.months;
+      
+      const fixedPayment = currentBalance * (monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) / (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+      
+      newInstallments = [];
+      let installmentNumber = 1;
+
+      for (const payment of payments) {
+        const paymentDate = new Date(payment.date);
+
+        while (currentDate < paymentDate && currentBalance > 0) {
+          const interest = currentBalance * monthlyRate;
+          const amortization = fixedPayment - interest;
+          currentBalance -= amortization;
+          remainingMonths--;
+
+          newInstallments.push({
+            number: installmentNumber++,
+            date: currentDate.toLocaleDateString('pt-BR'),
+            payment: fixedPayment,
+            amortization,
+            interest,
+            balance: Math.max(0, currentBalance)
+          });
+
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+
+        if (currentBalance > 0) {
+          currentBalance -= payment.amount;
+          newInstallments.push({
+            number: -1,
+            date: paymentDate.toLocaleDateString('pt-BR'),
+            payment: payment.amount,
+            amortization: payment.amount,
+            interest: 0,
+            balance: Math.max(0, currentBalance)
+          });
+
+          if (!payment.reduceInstallment) {
+            while (currentBalance > fixedPayment) {
+              const interest = currentBalance * monthlyRate;
+              const amortization = fixedPayment - interest;
+              currentBalance -= amortization;
+
+              newInstallments.push({
+                number: installmentNumber++,
+                date: currentDate.toLocaleDateString('pt-BR'),
+                payment: fixedPayment,
+                amortization,
+                interest,
+                balance: Math.max(0, currentBalance)
+              });
+
+              currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+
+            if (currentBalance > 0) {
+              const interest = currentBalance * monthlyRate;
+              const finalPayment = currentBalance * (1 + monthlyRate);
+              currentBalance = 0;
+
+              newInstallments.push({
+                number: installmentNumber++,
+                date: currentDate.toLocaleDateString('pt-BR'),
+                payment: finalPayment,
+                amortization: finalPayment - interest,
+                interest,
+                balance: 0
+              });
+            }
+          } else {
+            const newPayment = currentBalance * (monthlyRate * Math.pow(1 + monthlyRate, remainingMonths)) / (Math.pow(1 + monthlyRate, remainingMonths) - 1);
+            
+            while (currentBalance > 0) {
+              const interest = currentBalance * monthlyRate;
+              const amortization = newPayment - interest;
+              currentBalance -= amortization;
+
+              newInstallments.push({
+                number: installmentNumber++,
+                date: currentDate.toLocaleDateString('pt-BR'),
+                payment: newPayment,
+                amortization,
+                interest,
+                balance: Math.max(0, currentBalance)
+              });
+
+              currentDate.setMonth(currentDate.getMonth() + 1);
+            }
+          }
+        }
+      }
 
       if (currentBalance > 0) {
-        currentBalance -= payment.amount;
-        newInstallments.push({
-          number: -1,
-          date: paymentDate.toLocaleDateString('pt-BR'),
-          payment: payment.amount,
-          amortization: payment.amount,
-          interest: 0,
-          balance: Math.max(0, currentBalance)
-        });
+        while (currentBalance > 0) {
+          const interest = currentBalance * monthlyRate;
+          const amortization = fixedPayment - interest;
+          currentBalance -= amortization;
+
+          newInstallments.push({
+            number: installmentNumber++,
+            date: currentDate.toLocaleDateString('pt-BR'),
+            payment: fixedPayment,
+            amortization,
+            interest,
+            balance: Math.max(0, currentBalance)
+          });
+
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        }
       }
-    }
-
-    while (currentBalance > 0) {
-      const interest = currentBalance * monthlyRate;
-      const payment = originalAmortization + interest;
-      currentBalance -= originalAmortization;
-      remainingMonths--;
-
-      newInstallments.push({
-        number: installmentNumber++,
-        date: currentDate.toLocaleDateString('pt-BR'),
-        payment,
-        amortization: originalAmortization,
-        interest,
-        balance: Math.max(0, currentBalance)
-      });
-
-      currentDate.setMonth(currentDate.getMonth() + 1);
     }
 
     return newInstallments;
@@ -609,7 +740,7 @@ export default function SimulationHistory() {
                   Data
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tipo
+                  Tipo ```
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Banco
@@ -641,7 +772,8 @@ export default function SimulationHistory() {
                     {simulation.date}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${                      simulation.type === 'SAC' 
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      simulation.type === 'SAC' 
                         ? 'bg-green-100 text-green-800'
                         : 'bg-blue-100 text-blue-800'
                     }`}>
