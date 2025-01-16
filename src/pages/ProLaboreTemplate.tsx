@@ -22,10 +22,12 @@ const styles = StyleSheet.create({
     padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    position: 'relative'
   },
   headerContent: {
-    flex: 1
+    flex: 1,
+    marginRight: 100
   },
   headerTitle: {
     color: '#FFFFFF',
@@ -62,18 +64,24 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   headerDivider: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 32,
     borderBottomWidth: 1,
     borderBottomColor: '#93C5FD',
     opacity: 0.3,
-    marginVertical: 8,
-    marginHorizontal: 0
+    marginBottom: 12
   },
   headerLogo: {
+    position: 'absolute',
+    right: 20,
+    top: 20,
     width: 80,
     height: 80,
     backgroundColor: '#FFFFFF',
     borderRadius: 4,
-    marginLeft: 20
+    zIndex: 1
   },
   content: {
     padding: 30
@@ -247,8 +255,6 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
               </View>
             </View>
 
-            <View style={styles.headerDivider} />
-
             <View style={styles.headerRow}>
               <View style={styles.headerColumn}>
                 <Text style={styles.headerDateLabel}>Data</Text>
@@ -270,6 +276,7 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
             </View>
           </View>
           <View style={styles.headerLogo} />
+          <View style={styles.headerDivider} />
         </View>
 
         <View style={styles.content}>
