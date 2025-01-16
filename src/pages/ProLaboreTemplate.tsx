@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
   header: {
     backgroundColor: '#1E40AF',
-    padding: 16,
+    padding: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start'
@@ -35,8 +35,8 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 8,
-    gap: 48
+    marginBottom: 12,
+    gap: 5
   },
   headerColumn: {
     flex: 1
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   headerDateLabel: {
     color: '#93C5FD',
     fontSize: 8,
-    marginBottom: 1
+    marginBottom: 2
   },
   headerDateValue: {
     color: '#FFFFFF',
@@ -76,18 +76,18 @@ const styles = StyleSheet.create({
     marginLeft: 20
   },
   content: {
-    padding: 20
+    padding: 30
   },
   section: {
-    marginBottom: 15,
+    marginBottom: 5,
     backgroundColor: '#F8FAFC',
-    padding: 12,
+    padding: 3,
     borderRadius: 4
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#1E293B',
-    marginBottom: 12,
+    marginBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
     paddingBottom: 8
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 4,
-    paddingVertical: 4,
+    paddingVertical: 2,
     paddingHorizontal: 8,
     backgroundColor: '#FFFFFF',
     borderRadius: 2
