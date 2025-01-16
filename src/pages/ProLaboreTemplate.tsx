@@ -37,8 +37,10 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    marginBottom: 12,
-    gap: 5
+    marginBottom: 15,
+    gap: 5,
+    position: 'relative',
+    top: 15
   },
   headerColumn: {
     flex: 1
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
-    bottom: 32,
+    bottom: 36,
     borderBottomWidth: 1,
     borderBottomColor: '#93C5FD',
     opacity: 0.3,
