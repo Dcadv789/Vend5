@@ -87,26 +87,31 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     color: '#1E293B',
-    marginBottom: 8,
+    marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
-    paddingBottom: 4
+    paddingBottom: 8
   },
   row: {
+    marginBottom: 8
+  },
+  rowItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4
+    marginBottom: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2
   },
   label: {
-    fontSize: 12,
-    color: '#64748B',
-    flex: 1
+    fontSize: 10,
+    color: '#64748B'
   },
   value: {
-    fontSize: 12,
+    fontSize: 10,
     color: '#1E293B',
-    flex: 1,
-    textAlign: 'right'
+    fontWeight: 'bold'
   },
   analysis: {
     padding: 12,
@@ -301,7 +306,7 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
                 </Text>
                 <View style={styles.row}>
                   {groupFields.map((field) => (
-                    <View key={field.id}>
+                    <View key={field.id} style={styles.rowItem}>
                       <Text style={styles.label}>{field.label}:</Text>
                       <Text style={styles.value}>
                         {lastCalculation?.[group === 'faturamento' ? 'revenue' : 
@@ -329,7 +334,7 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
         </View>
 
         <Text style={styles.footer}>
-          DC Advisors® - Todos os direitos reservados
+          Copyright ® 2025 DC ADVISORS - Todos os direitos reservados
         </Text>
       </Page>
     </Document>
