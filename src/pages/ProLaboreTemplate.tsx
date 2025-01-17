@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, FileDown, Building2, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, PDFDownloadLink, Svg, Path, Defs, ClipPath, G } from '@react-pdf/renderer';
 import { Notification } from '../components/Notification';
 
 interface TemplateField {
@@ -81,8 +81,6 @@ const styles = StyleSheet.create({
     top: 20,
     width: 80,
     height: 80,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 4,
     zIndex: 1
   },
   content: {
@@ -295,7 +293,17 @@ const ProLaborePDF = ({ fields, groupedFields, companyName, cnpj, lastCalculatio
               </View>
             </View>
           </View>
-          <View style={styles.headerLogo} />
+          <Svg style={styles.headerLogo} viewBox="0 0 60 60">
+            <Defs>
+              <ClipPath id="9dbc95d808">
+                <Path d="M 1.207031 7.21875 L 58.957031 7.21875 L 58.957031 52.96875 L 1.207031 52.96875 Z M 1.207031 7.21875" />
+              </ClipPath>
+            </Defs>
+            <G clipPath="url(#9dbc95d808)">
+              <Path fill="#ffffff" d="M 58.625 15.542969 C 57.542969 13.085938 55.605469 9.53125 54.019531 7.21875 C 52.308594 9.972656 49.816406 13.933594 48.246094 16.449219 C 44.011719 23.226562 39.804688 30.019531 35.550781 36.777344 C 33.320312 40.324219 30.179688 42.554688 25.960938 43.203125 C 19.546875 44.1875 13.242188 40.433594 11.1875 34.339844 C 9.050781 28.007812 11.71875 21.121094 17.507812 18.023438 C 23.902344 14.601562 31.660156 16.738281 35.539062 22.996094 C 35.96875 23.691406 36.390625 23.703125 36.808594 23.039062 C 38.042969 21.066406 39.277344 19.09375 40.519531 17.121094 C 41.394531 15.734375 41.417969 15.695312 40.222656 14.488281 C 34.941406 9.164062 28.554688 6.792969 21.101562 7.675781 C 8.878906 9.117188 0.0625 20.542969 1.683594 32.769531 C 3.238281 44.453125 13.320312 52.46875 23.871094 52.246094 C 31.03125 52.175781 36.945312 49.433594 41.453125 43.84375 C 43.527344 41.273438 45.066406 38.332031 46.820312 35.542969 C 50.667969 29.417969 54.488281 23.269531 58.335938 17.136719 C 58.652344 16.632812 58.898438 16.167969 58.625 15.546875 Z M 58.625 15.542969" />
+            </G>
+            <Path fill="#f47400" d="M 23.9375 21.996094 C 19.980469 21.707031 15.953125 25.128906 15.894531 29.914062 C 15.84375 34.269531 19.585938 37.960938 23.925781 37.960938 C 28.273438 37.960938 32.035156 34.273438 31.96875 29.921875 C 31.898438 25.113281 27.917969 21.722656 23.9375 21.996094 Z M 23.9375 21.996094" />
+          </Svg>
           <View style={styles.headerDivider} />
         </View>
 
