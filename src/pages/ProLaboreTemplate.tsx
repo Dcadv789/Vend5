@@ -88,16 +88,16 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 5,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#FFFFFF',
     padding: 3,
     borderRadius: 4
   },
   sectionTitle: {
     fontSize: 16,
-    color: '#1E293B',
+    color: '#1e293b',
     marginBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomColor: '#93c5fd',
     paddingBottom: 8
   },
   row: {
